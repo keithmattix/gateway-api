@@ -18,8 +18,8 @@ import (
 	"time"
 
 	"istio.io/istio/pkg/test"
-	"istio.io/istio/pkg/test/framework/components/echo/check"
 	"sigs.k8s.io/gateway-api/conformance/mesh/echo"
+	"sigs.k8s.io/gateway-api/conformance/mesh/echo/check"
 )
 
 const (

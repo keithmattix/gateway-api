@@ -15,8 +15,8 @@
 package ports
 
 import (
-	"istio.io/istio/pkg/config/protocol"
 	"sigs.k8s.io/gateway-api/conformance/mesh/echo"
+	"sigs.k8s.io/gateway-api/conformance/mesh/protocol"
 )
 
 // Port names.

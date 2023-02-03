@@ -18,7 +18,7 @@ import (
 	"text/template"
 	"text/template/parse"
 
-	"istio.io/istio/pkg/util/sets"
+	"sigs.k8s.io/gateway-api/conformance/mesh/sets"
 )
 
 // Template that has been parsed to search for template parameters.

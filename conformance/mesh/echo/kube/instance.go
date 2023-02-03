@@ -24,7 +24,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"istio.io/istio/pkg/config/protocol"
 	"istio.io/istio/pkg/test"
 	echoClient "istio.io/istio/pkg/test/echo"
 	"istio.io/istio/pkg/test/echo/common/scheme"
@@ -33,6 +32,7 @@ import (
 	"sigs.k8s.io/gateway-api/conformance/mesh/cluster"
 	"sigs.k8s.io/gateway-api/conformance/mesh/echo"
 	"sigs.k8s.io/gateway-api/conformance/mesh/echo/common"
+	"sigs.k8s.io/gateway-api/conformance/mesh/protocol"
 	"sigs.k8s.io/gateway-api/conformance/mesh/resource"
 )
 

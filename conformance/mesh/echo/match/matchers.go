@@ -15,9 +15,9 @@
 package match
 
 import (
-	"istio.io/istio/pkg/test/framework/components/namespace"
 	"sigs.k8s.io/gateway-api/conformance/mesh/cluster"
 	"sigs.k8s.io/gateway-api/conformance/mesh/echo"
+	"sigs.k8s.io/gateway-api/conformance/mesh/namespace"
 )
 
 // Any doesn't filter out any echos.

@@ -22,11 +22,11 @@ import (
 
 	"github.com/mitchellh/copystructure"
 	"gopkg.in/yaml.v3"
-	"istio.io/istio/pkg/config/constants"
-	"istio.io/istio/pkg/config/protocol"
 	"istio.io/istio/pkg/test/echo/common"
-	"istio.io/istio/pkg/test/framework/components/namespace"
+	"sigs.k8s.io/gateway-api/conformance/mesh/namespace"
+	"sigs.k8s.io/gateway-api/conformance/mesh/protocol"
 	"sigs.k8s.io/gateway-api/conformance/mesh/resource"
+	"sigs.k8s.io/gateway-api/conformance/utils/constants"
 
 	"sigs.k8s.io/gateway-api/conformance/mesh/cluster"
 )

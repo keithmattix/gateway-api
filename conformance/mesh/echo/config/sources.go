@@ -16,7 +16,7 @@ package config
 
 import (
 	"istio.io/istio/pkg/test/framework/components/echo/config/param"
-	"istio.io/istio/pkg/test/framework/components/namespace"
+	"sigs.k8s.io/gateway-api/conformance/mesh/namespace"
 )
 
 // Sources provides common operations that can be performed on a list of Source objects.

@@ -22,12 +22,12 @@ import (
 	"istio.io/istio/pkg/test/framework"
 	"istio.io/istio/pkg/test/framework/components/echo/config/param"
 	"istio.io/istio/pkg/test/framework/components/istio"
-	"istio.io/istio/pkg/test/framework/components/namespace"
 	"istio.io/istio/pkg/test/framework/resource/config"
 	"istio.io/istio/pkg/test/framework/resource/config/apply"
 	"istio.io/istio/pkg/test/scopes"
-	"istio.io/istio/pkg/util/sets"
 	"sigs.k8s.io/gateway-api/conformance/mesh/echo"
+	"sigs.k8s.io/gateway-api/conformance/mesh/namespace"
+	"sigs.k8s.io/gateway-api/conformance/mesh/sets"
 )
 
 // Builder of configuration.

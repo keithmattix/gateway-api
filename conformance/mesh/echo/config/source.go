@@ -17,10 +17,10 @@ package config
 import (
 	"istio.io/istio/pkg/test"
 	"istio.io/istio/pkg/test/framework/components/echo/config/param"
-	"istio.io/istio/pkg/test/framework/components/namespace"
 	"istio.io/istio/pkg/test/util/file"
 	"istio.io/istio/pkg/test/util/tmpl"
 	"istio.io/istio/pkg/test/util/yml"
+	"sigs.k8s.io/gateway-api/conformance/mesh/namespace"
 )
 
 // Source of YAML text.

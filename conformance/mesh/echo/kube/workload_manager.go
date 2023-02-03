@@ -23,10 +23,10 @@ import (
 	"github.com/hashicorp/go-multierror"
 	corev1 "k8s.io/api/core/v1"
 
-	"istio.io/istio/pkg/config/protocol"
 	echoCommon "istio.io/istio/pkg/test/echo/common"
 	"istio.io/istio/pkg/test/util/retry"
 	"sigs.k8s.io/gateway-api/conformance/mesh/echo"
+	"sigs.k8s.io/gateway-api/conformance/mesh/protocol"
 	"sigs.k8s.io/gateway-api/conformance/mesh/resource"
 )
 

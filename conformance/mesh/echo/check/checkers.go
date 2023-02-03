@@ -24,13 +24,12 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"google.golang.org/grpc/codes"
 
-	"istio.io/istio/pkg/config/protocol"
 	echoClient "istio.io/istio/pkg/test/echo"
 	"istio.io/istio/pkg/test/framework"
-	"istio.io/istio/pkg/test/framework/components/istio/ingress"
 	"istio.io/istio/pkg/util/istiomultierror"
 	"sigs.k8s.io/gateway-api/conformance/mesh/cluster"
 	"sigs.k8s.io/gateway-api/conformance/mesh/echo"
+	"sigs.k8s.io/gateway-api/conformance/mesh/protocol"
 )
 
 // Each applies the given per-response function across all responses.
@@ -511,8 +510,6 @@ func clusterFor(c echo.Caller) cluster.Cluster {
 		switch from := c.(type) {
 		case echo.Instance:
 			return from.Config().Cluster
-		case ingress.Instance:
-			return from.Cluster()
 		}
 	}
 

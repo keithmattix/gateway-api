@@ -20,9 +20,9 @@ import (
 
 	"istio.io/istio/pkg/test"
 	"istio.io/istio/pkg/test/framework/components/echo/match"
-	"istio.io/istio/pkg/test/framework/components/namespace"
 	"sigs.k8s.io/gateway-api/conformance/mesh/cluster"
 	"sigs.k8s.io/gateway-api/conformance/mesh/echo"
+	"sigs.k8s.io/gateway-api/conformance/mesh/namespace"
 	"sigs.k8s.io/gateway-api/conformance/mesh/resource"
 )
 

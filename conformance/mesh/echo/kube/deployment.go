@@ -36,14 +36,11 @@ import (
 	"istio.io/api/label"
 	meshconfig "istio.io/api/mesh/v1alpha1"
 	istioctlcmd "istio.io/istio/istioctl/cmd"
-	"istio.io/istio/pkg/config/constants"
-	"istio.io/istio/pkg/config/protocol"
 	echoCommon "istio.io/istio/pkg/test/echo/common"
 	"istio.io/istio/pkg/test/env"
 	"istio.io/istio/pkg/test/framework/components/environment/kube"
 	"istio.io/istio/pkg/test/framework/components/istio"
 	"istio.io/istio/pkg/test/framework/components/istioctl"
-	"istio.io/istio/pkg/test/framework/components/namespace"
 	"istio.io/istio/pkg/test/framework/resource/config/apply"
 	"istio.io/istio/pkg/test/scopes"
 	"istio.io/istio/pkg/test/util/file"
@@ -52,7 +49,10 @@ import (
 	"istio.io/istio/pkg/util/protomarshal"
 	"istio.io/pkg/log"
 	"sigs.k8s.io/gateway-api/conformance/mesh/echo"
+	"sigs.k8s.io/gateway-api/conformance/mesh/namespace"
+	"sigs.k8s.io/gateway-api/conformance/mesh/protocol"
 	"sigs.k8s.io/gateway-api/conformance/mesh/resource"
+	"sigs.k8s.io/gateway-api/conformance/utils/constants"
 )
 
 const (
@@ -299,7 +299,6 @@ func deploymentParams(ctx resource.Context, cfg echo.Config) (map[string]any, er
 		"ImageFullPath":  cfg.Image,
 		"ContainerPorts": getContainerPorts(cfg),
 	}}
-
 
 	params := map[string]any{
 		"ImageHub":                settings.Image.Hub,

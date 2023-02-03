@@ -26,11 +26,11 @@ import (
 	"istio.io/istio/pkg/test"
 	"istio.io/istio/pkg/test/framework/components/echo/kube"
 	_ "istio.io/istio/pkg/test/framework/components/echo/staticvm" // force registraton of factory func
-	"istio.io/istio/pkg/test/framework/components/namespace"
 	"istio.io/istio/pkg/test/framework/resource/config/apply"
 	"istio.io/istio/pkg/test/scopes"
 	"sigs.k8s.io/gateway-api/conformance/mesh/cluster"
 	"sigs.k8s.io/gateway-api/conformance/mesh/echo"
+	"sigs.k8s.io/gateway-api/conformance/mesh/namespace"
 	"sigs.k8s.io/gateway-api/conformance/mesh/resource"
 )
 

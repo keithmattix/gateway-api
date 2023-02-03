@@ -20,8 +20,8 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 
-	"istio.io/istio/pkg/config/constants"
 	"sigs.k8s.io/gateway-api/conformance/mesh/echo"
+	"sigs.k8s.io/gateway-api/conformance/utils/constants"
 )
 
 type podSelector struct {

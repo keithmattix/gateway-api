@@ -18,8 +18,8 @@ import (
 	"fmt"
 	"reflect"
 
-	"istio.io/istio/pkg/config/protocol"
 	"istio.io/istio/pkg/test/echo/common/scheme"
+	"sigs.k8s.io/gateway-api/conformance/mesh/protocol"
 )
 
 // NoServicePort defines the ServicePort value for a Port that is a workload-only port.
