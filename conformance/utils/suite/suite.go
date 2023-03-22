@@ -70,6 +70,17 @@ const (
 
 	// This option indicates support for HTTPRoute path rewrite (experimental conformance)
 	SupportHTTPRoutePathRewrite SupportedFeature = "HTTPRoutePathRewrite"
+
+	// This option indicates support for GAMMA (experimental conformance)
+	SupportGAMMA SupportedFeature = "GAMMA"
+)
+
+// TODO: Expand
+type ConformanceProfile string
+
+var (
+	ConformanceProfileDefault ConformanceProfile = "Default"
+	ConformanceProfileMesh    ConformanceProfile = "Mesh"
 )
 
 // StandardCoreFeatures are the features that are required to be conformant with
@@ -81,6 +92,8 @@ var StandardCoreFeatures = map[SupportedFeature]bool{
 // ConformanceTestSuite defines the test suite used to run Gateway API
 // conformance tests.
 type ConformanceTestSuite struct {
+	Setupper Setupper
+
 	Client            client.Client
 	RoundTripper      roundtripper.RoundTripper
 	GatewayClassName  string
@@ -117,7 +130,8 @@ type Options struct {
 	TimeoutConfig        config.TimeoutConfig
 	// SkipTests contains all the tests not to be run and can be used to opt out
 	// of specific tests
-	SkipTests []string
+	SkipTests          []string
+	ConformanceProfile ConformanceProfile
 }
 
 // New returns a new ConformanceTestSuite.
@@ -139,6 +153,13 @@ func New(s Options) *ConformanceTestSuite {
 		}
 	}
 
+	var setupper Setupper
+	if s.ConformanceProfile == ConformanceProfileMesh {
+
+ 	} else {
+		setupper = &GatewaySetup{}
+	}
+
 	suite := &ConformanceTestSuite{
 		Client:           s.Client,
 		RoundTripper:     roundTripper,
@@ -150,6 +171,7 @@ func New(s Options) *ConformanceTestSuite {
 			NamespaceLabels:          s.NamespaceLabels,
 			ValidUniqueListenerPorts: s.ValidUniqueListenerPorts,
 		},
+		Setupper:          setupper,
 		SupportedFeatures: s.SupportedFeatures,
 		TimeoutConfig:     s.TimeoutConfig,
 		SkipTests:         sets.New(s.SkipTests...),
@@ -166,30 +188,7 @@ func New(s Options) *ConformanceTestSuite {
 // Setup ensures the base resources required for conformance tests are installed
 // in the cluster. It also ensures that all relevant resources are ready.
 func (suite *ConformanceTestSuite) Setup(t *testing.T) {
-	t.Logf("Test Setup: Ensuring GatewayClass has been accepted")
-	suite.ControllerName = kubernetes.GWCMustHaveAcceptedConditionTrue(t, suite.Client, suite.TimeoutConfig, suite.GatewayClassName)
-
-	suite.Applier.GatewayClass = suite.GatewayClassName
-	suite.Applier.ControllerName = suite.ControllerName
-
-	t.Logf("Test Setup: Applying base manifests")
-	suite.Applier.MustApplyWithCleanup(t, suite.Client, suite.TimeoutConfig, suite.BaseManifests, suite.Cleanup)
-
-	t.Logf("Test Setup: Applying programmatic resources")
-	secret := kubernetes.MustCreateSelfSignedCertSecret(t, "gateway-conformance-web-backend", "certificate", []string{"*"})
-	suite.Applier.MustApplyObjectsWithCleanup(t, suite.Client, suite.TimeoutConfig, []client.Object{secret}, suite.Cleanup)
-	secret = kubernetes.MustCreateSelfSignedCertSecret(t, "gateway-conformance-infra", "tls-validity-checks-certificate", []string{"*"})
-	suite.Applier.MustApplyObjectsWithCleanup(t, suite.Client, suite.TimeoutConfig, []client.Object{secret}, suite.Cleanup)
-	secret = kubernetes.MustCreateSelfSignedCertSecret(t, "gateway-conformance-infra", "tls-passthrough-checks-certificate", []string{"abc.example.com"})
-	suite.Applier.MustApplyObjectsWithCleanup(t, suite.Client, suite.TimeoutConfig, []client.Object{secret}, suite.Cleanup)
-
-	t.Logf("Test Setup: Ensuring Gateways and Pods from base manifests are ready")
-	namespaces := []string{
-		"gateway-conformance-infra",
-		"gateway-conformance-app-backend",
-		"gateway-conformance-web-backend",
-	}
-	kubernetes.NamespacesMustBeAccepted(t, suite.Client, suite.TimeoutConfig, namespaces)
+	suite.Setupper.Setup(t, suite)
 }
 
 // Run runs the provided set of conformance tests.

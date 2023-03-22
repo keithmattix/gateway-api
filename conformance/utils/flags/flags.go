@@ -29,4 +29,10 @@ var (
 	CleanupBaseResources = flag.Bool("cleanup-base-resources", true, "Whether to cleanup base test resources after the run")
 	SupportedFeatures    = flag.String("supported-features", "", "Supported features included in conformance tests suites")
 	ExemptFeatures       = flag.String("exempt-features", "", "Exempt Features excluded from conformance tests suites")
+	MeshOnly             = flag.Bool("mesh-only", false, "Whether to run mesh conformance tests only")
+)
+
+// Mesh specific flags
+var (
+	MeshImplementationName = flag.String("mesh-implementation-name", "", "Name of the mesh implementation being tested")
 )

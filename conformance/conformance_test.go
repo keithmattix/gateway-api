@@ -33,6 +33,11 @@ import (
 )
 
 func TestConformance(t *testing.T) {
+
+	// TODO: Turn mesh into a conformance profile
+	if *flags.MeshOnly {
+		return
+	}
 	cfg, err := config.GetConfig()
 	if err != nil {
 		t.Fatalf("Error loading Kubernetes config: %v", err)
@@ -62,6 +67,44 @@ func TestConformance(t *testing.T) {
 	})
 	cSuite.Setup(t)
 	cSuite.Run(t, tests.ConformanceTests)
+}
+
+func TestMeshConformance(t *testing.T) {
+	cfg, err := config.GetConfig()
+	if err != nil {
+		t.Fatalf("Error loading Kubernetes config: %v", err)
+	}
+	client, err := client.New(cfg, client.Options{})
+	if err != nil {
+		t.Fatalf("Error initializing Kubernetes client: %v", err)
+	}
+	v1alpha2.AddToScheme(client.Scheme())
+	v1beta1.AddToScheme(client.Scheme())
+
+	supportedFeatures := parseSupportedFeatures(*flags.SupportedFeatures)
+	exemptFeatures := parseSupportedFeatures(*flags.ExemptFeatures)
+	for feature := range exemptFeatures {
+		supportedFeatures[feature] = false
+	}
+
+	// Don't run GAMMA conformance unless it's enabled
+	gammaEnabled, ok := supportedFeatures[suite.SupportGAMMA]
+	if !ok || !gammaEnabled {
+		return
+	}
+
+	t.Logf("Running mesh conformance tests with %s mesh\n cleanup: %t\n debug: %t\n supported features: [%v]\n exempt features: [%v]",
+		*flags.MeshImplementationName, *flags.CleanupBaseResources, *flags.ShowDebug, *flags.SupportedFeatures, *flags.ExemptFeatures)
+
+	cSuite := suite.New(suite.Options{
+		Client:               client,
+		Debug:                *flags.ShowDebug,
+		CleanupBaseResources: *flags.CleanupBaseResources,
+		SupportedFeatures:    supportedFeatures,
+		BaseManifests:        "mesh/manifests.yaml",
+	})
+	cSuite.Setup(t)
+	cSuite.Run(t, tests.MeshConformanceTests)
 }
 
 // parseSupportedFeatures parses flag arguments and converts the string to
