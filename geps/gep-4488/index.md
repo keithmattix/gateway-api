@@ -24,7 +24,6 @@ Currently, representing external destinations in Gateway API requires synthetic 
 - **Security vulnerabilities**: ExternalName Services are subject to DNS rebinding attacks ([CVE-2021-25740](https://github.com/kubernetes/kubernetes/issues/103675))
 - **Policy limitations**: Cannot apply backend-specific policies (TLS, authentication, rate limiting) without affecting all consumers
 - **Synthetic resource overhead**: Creates artificial Kubernetes resources for external dependencies
-- **Configuration complexity**: Mixing internal and external destinations in the same resource type
 
 ### Policy Application Complexity
 
@@ -91,28 +90,16 @@ type Backend struct {
   Status BackendControllerStatus `json:"status,omitempty"`
 }
 
-type BackendSpec struct {
-  // Destination defines where traffic should be sent
-  Destination BackendDestination `json:"destination"`
-
-  // Filters defines filters that should be executed when
-  // sending traffic to this backend. Filters should not
-  // be duplicated on a backendRef (targeting this `Backend`)
-  // and on the `Backend` itself.
-  // +optional
-  // TODO: Specify filter type definition. Should,
-  // at minimum, include ExtensionRef pattern.
-  Filters []BackendFilters `json:"filters,omitempty"`
-}
-
+// +kubebuilder:validation:Enum=Hostname;EndpointSelector
 type BackendType string
 
 const (
   BackendTypeHostname             BackendType = "Hostname"
-  BackendTypeEndpointSelector BackendType = "EndpointSelector"
+  BackendTypeEndpointSelector     BackendType = "EndpointSelector"
 )
 
-type BackendDestination struct {
+// +kubebuilder:validation:ExactlyOneOf=Hostname,EndpointSelector
+type BackendSpec struct {
   // Type defines the destination type
   Type BackendType `json:"type"`
 
@@ -126,7 +113,9 @@ type BackendDestination struct {
   Hostname *HostnameBackend `json:"hostname,omitempty"`
 
   // EndpointSelector specifies the configuration for an EndpointSelector backend. Only used if type is EndpointSelector.
-  // TODO: Reference EndpointSelector GEP once added.
+  // As defined in GEP-4731, creation of a `Backend` of type `EndpointSelector` should result in `Backend` controllers
+  // creating the requisite `EndpointSelector` resource and setting ownerReferences appropriately.
+  // TODO: Add link when GEP-4731 merges.
   // +optional
   EndpointSelector *EndpointSelectorBackend `json:"endpointSelector,omitempty"`
 }
@@ -144,7 +133,7 @@ const (
   // Enable mutual TLS.
   BackendTLSModeMutual BackendTLSMode = "Mutual"
 )
-
+required
 type EndpointSelectorBackend struct {
   // SelectorRef specifies the reference to the EndpointSelector resource that manages the EndpointSlices for this backend.
   // +required
@@ -205,7 +194,7 @@ type BackendPort struct {
   // +kubebuilder:validation:Maximum=65535
   Number uint32 `json:"number"`
   // Protocol defines the protocol of the backend.
-  // +required
+  // +optional
   // +kubebuilder:validation:MaxLength=256
   Protocol BackendProtocol `json:"protocol"`
   // TLS defines the TLS configuration that a client should use when talking to the backend.
@@ -213,8 +202,6 @@ type BackendPort struct {
   // top level with per-port overrides?
   // +optional
   TLS *BackendTLS `json:"tls,omitempty"`
-  // +optional
-  ProtocolOptions *BackendProtocolOptions `json:"protocolOptions,omitempty"`
 }
 ```
 
@@ -231,29 +218,16 @@ type HostnameBackend struct {
 
 ```go
 
-// BackendProtocol defines the protocol for backend communication.
-// +kubebuilder:validation:Enum=HTTP;HTTP2;TCP;MCP
+// BackendProtocol defines the higher-level protocol for backend communication.
+// The underlying transport protocol for the proxied traffic will already have been
+// determined based on the route.
+// +kubebuilder:validation:Enum=MCP
 type BackendProtocol string
 
 const (
-  BackendProtocolHTTP  BackendProtocol = "HTTP"
-  BackendProtocolHTTP2 BackendProtocol = "HTTP2"
-  BackendProtocolTCP   BackendProtocol = "TCP"
   BackendProtocolMCP   BackendProtocol = "MCP"
 )
 
-// +kubebuilder:validation:ExactlyOneOf=mcp
-type BackendProtocolOptions struct {
-  // +optional
-  MCP *MCPProtocolOptions `json:"mcp,omitempty"`
-}
-
-type MCPProtocolOptions struct {
-  // URL path for MCP traffic. Default is /mcp.
-  // +optional
-  // +kubebuilder:default:=/mcp
-  Path string `json:"path,omitempty"`
-}
 ```
 
 ## TLS Policy Consolidation Analysis
@@ -273,6 +247,7 @@ One of the most significant design decisions for the Backend resource concerns T
    - Current `BackendTLSPolicy` is designed around Service-based backends only
    - `BackendTLSPolicy` currently does not support per-consumer overrides
    - It is unclear whether `BackendTLSPolicy` is a producer or consumer oriented resource
+     - [GEP 3875](https://github.com/kubernetes-sigs/gateway-api/pull/3876) proposed, among other things, adding consumer overrides to `BackendTLSPolicy`; however, that proposal introduced several new fields to the resource, including a `from` selector on `targetRef` that would have added significant complexity to both the API and implementations. Furthermore, the GEP has a [limitation](https://github.com/kubernetes-sigs/gateway-api/pull/3876/changes#diff-67a0076fb272af6273ce353d4687732735e03ddec8ae2bbc35b0a905281f9057R88) that it would not be possible to enforce consumer-side policies originating from the same namespace as the producer. This proposal was ultimately abandoned.
 
 3. **Per-Backend Client Certificates**
    - External destinations may require different client certificates
@@ -348,6 +323,7 @@ spec:
     - name: openai-api
       kind: Backend
       group: gateway.networking.k8s.io
+      port: 443
 ```
 
 ## Security Model and RBAC Considerations
@@ -433,11 +409,11 @@ spec:
 
 ## EndpointSelector Type
 
-
+TODO: Reference GEP 4731 once it merges.
 
 ## Extension Framework
 
-The Backend resource provides three levels for applying extensions and policies:
+The Backend resource provides two levels for applying extensions and policies:
 
 ### 1. Route-Level Extensions (HTTPRoute Filters)
 
@@ -460,34 +436,7 @@ spec:
       kind: Backend
 ```
 
-**Use cases**: Request modification, rate limiting, authentication injection
-
-### 2. Backend-Level Extensions
-
-Applied at the Backend resource, affecting all requests to that destination.
-
-```yaml
-apiVersion: gateway.networking.k8s.io/v1alpha1
-kind: Backend
-spec:
-  destination:
-    type: Hostname
-    hostname:
-      address: api.openai.com
-  filters:
-  - type: ExtensionRef
-    extensionRef:
-      name: connection-pool
-      kind: ConnectionPoolPolicy
-  - type: ExtensionRef
-    extensionRef:
-      name: circuit-breaker
-      kind: CircuitBreakerPolicy
-```
-
-**Use cases**: Connection management, circuit breaking, load balancing
-
-### 3. Policy Attachment
+### 2. Policy Attachment
 
 Separate policy resources attached to Backend resources.
 
@@ -505,7 +454,7 @@ spec:
   backoff: exponential
 ```
 
-**Use cases**: Retry policies, observability configuration, vendor-specific policies
+A third extension mechanism, filters applied on the `Backend` resource itself, may be the subject of a future GEP.
 
 ## Graduation Criteria
 
